@@ -6,11 +6,10 @@ angular.module('reedsy').controller('BooksIndexController', [
 
     function getBooks(){
       var promise = book.getAll();
-
       promise.then(function( books ){
         console.log(books)
         $scope.books = books.data
-      })
+      });
     }
 
   }

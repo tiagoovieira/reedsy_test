@@ -1,4 +1,4 @@
-var app = angular.module('reedsy', ['ui.router'])
+var app = angular.module('reedsy', ['ui.router', 'angularMoment'])
 
 app.config(function ($stateProvider, $urlRouterProvider){
 

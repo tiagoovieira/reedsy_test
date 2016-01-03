@@ -1,3 +1,31 @@
-<div ng-repeat="book in books">
-  <img src="{{book.cover}}">
+<div ng-repeat="book in books" class="book-card">
+    <div class="card">
+      <div class="card-image">
+        <img src="{{book.cover}}">
+        <span class="card-title">{{ book.name }}</span>
+      </div>
+      <div class="card-content">
+        <b>Author:</b> <br> 
+        {{ book.author.name }} <br>
+        Likes: {{ book.likes }} <br>
+        <span am-time-ago="book.published"></span>
+        
+      </div>
+    </div>
 </div>
+
+<style type="text/css">
+  img {
+    width: 200px;
+    height: auto;
+  }
+
+  .book-card {
+    width: 23%;
+    display: inline-block;
+    margin-right: 20px;
+    margin-bottom: 20px;
+  }
+
+
+</style>
