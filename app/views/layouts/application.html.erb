@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Yaya</title>
+    <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => false %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track' => false %>
+    <%= csrf_meta_tags %>
+  </head>
+  
+  <body ng-app="reedsy" ng-controller="BooksIndexController">
+    <div ui-view></div>
+    <section ng-view class="app-view">
+      <!--Angular insert-->
+    </section>
+
+  <script src="/bower_components/angular/angular.min.js"></script>
+  <script src="/bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
+
+
+  <script src="/app/app.js"></script>
+
+  <script src="/app/controllers/books/books.js"></script>
+
+</body>
+</html>
