@@ -1,4 +1,4 @@
-var app = angular.module('reedsy', ['ui.router', 'angularMoment'])
+var app = angular.module('reedsy', ['ui.router', 'angularMoment', 'angularUtils.directives.dirPagination'])
 
 app.config(function ($stateProvider, $urlRouterProvider){
 
@@ -11,7 +11,7 @@ app.config(function ($stateProvider, $urlRouterProvider){
       controller: 'BooksIndexController'
     })
     .state('show', {
-      url: '/books/:id',
+      url: '/:id',
       templateUrl: '/app/views/books/show.html',
       controller: 'BookShowController'
     })

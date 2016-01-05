@@ -1,25 +1,34 @@
-<div ng-repeat="book in books" class="book-card">
-    <div class="card">
-      <div class="card-image">
-        <img src="{{book.cover}}">
-        <span class="card-title">{{ book.name }}</span>
+<div options></div>
+
+<div style="margin-top: 20px;">
+  <div dir-paginate="book in books | search:search | genreCategory:genreCategory | itemsPerPage: 25" current-page="currentPage" class="book-card">
+      <div class="card" ng-click="showBook()">
+        <div class="card-image">
+          <img src="{{book.cover}}">
+          <span class="card-title title-highlight">{{ book.name }}</span>
+        </div>
+        <div class="card-content">
+          <b>Author:</b> <br> 
+          {{ book.author.name }} <br>
+          Likes: {{ book.likes }} <br>
+          <span am-time-ago="book.published"></span>
+          
+        </div>
       </div>
-      <div class="card-content">
-        <b>Author:</b> <br> 
-        {{ book.author.name }} <br>
-        Likes: {{ book.likes }} <br>
-        <span am-time-ago="book.published"></span>
-        
-      </div>
-    </div>
+  </div>
 </div>
 
+<dir-pagination-controls
+    [max-size=""]
+    [direction-links=""]
+    [boundary-links=""]
+    [on-page-change=""]
+    [pagination-id=""]
+    [template-url=""]
+    [auto-hide=""]>
+    </dir-pagination-controls>
 <style type="text/css">
-  img {
-    width: 200px;
-    height: auto;
-  }
-
+  
   .book-card {
     width: 23%;
     display: inline-block;
@@ -27,5 +36,17 @@
     margin-bottom: 20px;
   }
 
+  .title-highlight{
+    background: rgba(0,0,0,0.6);
+  }
+
+  .book-card:hover{
+    cursor: pointer;
+    opacity: 0.5; 
+    filter: alpha(opacity=50);
+    -moz-box-shadow: 0 0 0px #ccc; 
+    -webkit-box-shadow: 0 0 0px #ccc; 
+    box-shadow: 0 0 0px #ccc;
+  }
 
 </style>

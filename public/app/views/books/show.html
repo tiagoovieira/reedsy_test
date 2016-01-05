@@ -1,0 +1,26 @@
+<div options></div>
+<div class="card-panel" style="position: relative">
+  <img src="{{book.cover}}">
+  <div class="book-info">
+    <h3>{{book.name}}</h3>
+    <img src="{{ book.author.avatar }}">{{ book.author.name }} <br>
+          Likes: {{ book.likes }} <br>
+          <span am-time-ago="book.published"></span>
+
+    <div ng-repeat="intro in book.introduction">
+      {{intro.content}}
+    </div>
+  </div>
+</div>
+
+
+<style type="text/css">
+  .card-panel > img {
+    display: inline-block;
+  }
+
+  .book-info {
+    position: absolute;
+    display: inline-block;
+  }
+</style>

@@ -8,6 +8,9 @@ class BooksController < ApplicationController
   end
 
   def show
+    books = JSON.parse(File.read("books.json"))
+    book = books.select {|b| b["id"] == params[:id]}
+    render json: book, status: 200
   end
 
 

@@ -8,8 +8,18 @@ angular.module('reedsy').factory('book', ['$http',
           method: 'GET',
           url: '/books.json'
         }).success(function(data, status){
-          console.log(data);
+
         }).error(function(data, status){
+
+        });
+      },
+      get: function(id){
+        return $http({
+          method: 'GET',
+          url: '/books/' + id + '.json'
+        }).success(function(data,status){
+
+        }).error(function(data,status){
 
         });
       }

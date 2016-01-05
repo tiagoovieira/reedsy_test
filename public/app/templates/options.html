@@ -1,0 +1,29 @@
+<nav>
+  <div class="nav-wrapper">
+    <form class="input-field col s12">
+      <input id="search" type="search" data-ng-model="search" >
+      <label for="search"><i class="material-icons">search</i></label>
+      <i class="material-icons">close</i>
+    </form>
+  </div>
+</nav>
+
+<div class="input-field col s12">
+  <select multiple>
+    <option value="" disabled selected>Choose your option</option>
+    <optgroup ng-repeat="category in genreCategories" label="{{category.category}}"> 
+      <option ng-repeat="genre in category.genres" value="{{genre}}">{{genre}}</option>
+    </optgroup>
+  </select>
+</div>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    
+    $('select').material_select();
+    $('input.select-dropdown').click(function(e){
+      $('select').material_select();
+    });
+  });
+
+</script>
