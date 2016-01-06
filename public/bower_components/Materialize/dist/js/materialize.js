@@ -2844,8 +2844,8 @@ $(document).ready(function(){
   /*******************
    *  Select Plugin  *
    ******************/
-  $.fn.material_select = function(callback) {
-    $(this).each(function() {
+  $.fn.material_select = function (callback) {
+    $(this).each(function(){
       var $select = $(this);
 
       if ($select.hasClass('browser-default')) {
@@ -2853,20 +2853,18 @@ $(document).ready(function(){
       }
 
       var multiple = $select.attr('multiple') ? true : false,
-          lastID = $select.data('select-id'), // Tear down structure if Select needs to be rebuilt
-          required = $select.attr('required') ? true : false,
-          optgroups = $select.find('optgroup').length ? true : false;
+          lastID = $select.data('select-id'); // Tear down structure if Select needs to be rebuilt
 
       if (lastID) {
         $select.parent().find('span.caret').remove();
         $select.parent().find('input').remove();
 
         $select.unwrap();
-        $('ul#select-options-' + lastID).remove();
+        $('ul#select-options-'+lastID).remove();
       }
 
       // If destroying the select, remove the selelct-id and reset it to it's uninitialized state.
-      if (callback === 'destroy') {
+      if(callback === 'destroy') {
         $select.data('select-id', null).removeClass('initialized');
         return;
       }
@@ -2875,176 +2873,88 @@ $(document).ready(function(){
       $select.data('select-id', uniqueID);
       var wrapper = $('<div class="select-wrapper"></div>');
       wrapper.addClass($select.attr('class'));
-      var options = $('<ul id="select-options-' + uniqueID + '" class="dropdown-content select-dropdown ' + (multiple ? 'multiple-select-dropdown' : '') + '"></ul>'),
-          selectChildren = optgroups ? $select.find('optgroup, option:not(select > option:not(:disabled))') : $select.find('optgroup, option'),
-          optionsValuesSelected = [],
+      var options = $('<ul id="select-options-' + uniqueID +'" class="dropdown-content select-dropdown ' + (multiple ? 'multiple-select-dropdown' : '') + '"></ul>'),
+          selectChildren = $select.children('option, optgroup'),
+          valuesSelected = [],
           optionsHover = false;
 
-      if (multiple) {
-        if (optgroups) {
-          var optgroupValuesSelected = [];
+      var label = $select.find('option:selected').html() || $select.find('option:first').html() || "";
 
-          for (var i = 0, optgroupsCount = $select.find('optgroup').length; i < optgroupsCount; i++) {
-            optionsValuesSelected.push([]);
-          }
-        }
-      }
-
-      // Scan for existing options before an optgroup
-      if (optgroups) {
-        if ($select.find('> option:not(:disabled)').length) {
-          $select.find('> option:not(:disabled)').each(function() {
-            // Put it in comments
-            $(this).wrap(function() {
-              return '<!-- ' + this.outerHTML + ' -->';
-            });
-            $(this).remove();
-          });
-        }
-      }
-
-      var label = $select.find('option:selected').html() || $select.find('option:disabled').eq(0).html() || "";
-
-      // Function that renders and appends the element taking into
+      // Function that renders and appends the option taking into
       // account type and possible image icon.
-      var generateOptionsElement = function(element, multiple, optgroup) {
-        // Add icons
-        var icon_url = element.data('icon') ? element.data('icon').trim() : '',
-            imageClasses = element.attr('class') ? element.attr('class').trim() : '',
-            disabledClass = (element.is(':disabled')) ? 'disabled' : '',
-            sanitizedText = optgroup ? element.attr('label').trim() : element.html().trim(),
-            dataValue = optgroup ? element.attr('label') : element.val();
+      var appendOptionWithIcon = function(select, option, type) {
+        // Add disabled attr if disabled
+        var disabledClass = (option.is(':disabled')) ? 'disabled ' : '';
 
-        options.append(createElement());
+        // add icons
+        var icon_url = option.data('icon');
+        var classes = option.attr('class');
+        if (!!icon_url) {
+          var classString = '';
+          if (!!classes) classString = ' class="' + classes + '"';
 
-        function createElement() {
-          var element = document.createElement('li'),
-              spanElement = document.createElement('span');
-
-          if (icon_url) {
-            var image = document.createElement('img');
-            image.src = icon_url;
-            image.className = imageClasses;
-
-            element.appendChild(image);
+          // Check for multiple type.
+          if (type === 'multiple') {
+            options.append($('<li class="' + disabledClass + '"><img src="' + icon_url + '"' + classString + '><span><input type="checkbox"' + disabledClass + '/><label></label>' + option.html() + '</span></li>'));
+          } else {
+            options.append($('<li class="' + disabledClass + '"><img src="' + icon_url + '"' + classString + '><span>' + option.html() + '</span></li>'));
           }
+          return true;
+        }
 
-          if (multiple) {
-            var input = document.createElement('input'),
-                labelCheckbox = document.createElement('label');
-
-            input.type = 'checkbox';
-
-            spanElement.appendChild(input);
-            spanElement.appendChild(labelCheckbox);
-          }
-
-          element.className += optgroup ? 'optgroup' + (disabledClass ? ' ' + disabledClass : '') : disabledClass;
-          element.dataset.value = dataValue;
-
-          spanElement.innerHTML += sanitizedText;
-          element.appendChild(spanElement);
-
-          return element;
+        // Check for multiple type.
+        if (type === 'multiple') {
+          options.append($('<li class="' + disabledClass + '"><span><input type="checkbox"' + disabledClass + '/><label></label>' + option.html() + '</span></li>'));
+        } else {
+          options.append($('<li class="' + disabledClass + '"><span>' + option.html() + '</span></li>'));
         }
       };
 
       /* Create dropdown structure. */
       if (selectChildren.length) {
         selectChildren.each(function() {
-          var _this = $(this);
-
-          if (_this.is('option')) {
-            // generateOptionsElement = function(select, element, multiple, optgroup)
+          if ($(this).is('option')) {
+            // Direct descendant option.
             if (multiple) {
-              generateOptionsElement(_this, true, false);
+              appendOptionWithIcon($select, $(this), 'multiple');
+
             } else {
-              generateOptionsElement(_this, false, false);
+              appendOptionWithIcon($select, $(this));
             }
           } else if ($(this).is('optgroup')) {
-            if (multiple) {
-              generateOptionsElement(_this, true, true);
-            } else {
-              generateOptionsElement(_this, false, true);
-            }
+            // Optgroup.
+            var selectOptions = $(this).children('option');
+            options.append($('<li class="optgroup"><span>' + $(this).attr('label') + '</span></li>'));
+
+            selectOptions.each(function() {
+              appendOptionWithIcon($select, $(this));
+            });
           }
         });
       }
 
-      options.find('li:not(.optgroup)').each(function(i) {
-        var _this = $(this);
-
-        _this.on('click', function(e) {
+      options.find('li:not(.optgroup)').each(function (i) {
+        $(this).click(function (e) {
           // Check if option element is disabled
-          if (!_this.hasClass('disabled') && !_this.hasClass('optgroup')) {
-            var indexLi = _this.index();
+          if (!$(this).hasClass('disabled') && !$(this).hasClass('optgroup')) {
+            var selected = true;
 
             if (multiple) {
-              if (optgroups) {
-                var indexes = returnIndexes(_this);
-
-                toggleIndexFromArray(indexes.element, indexLi, indexes.optgroup);
-                toggleActivationOptgroupParent(_this);
-              } else {
-                toggleIndexFromArray(indexLi);
-              }
-
-              options.scrollTo(_this);
-              $('input[type="checkbox"]', _this[0]).prop('checked', function(i, v) {
-                return !v;
-              });
+              $('input[type="checkbox"]', this).prop('checked', function(i, v) { return !v; });
+              selected = toggleEntryFromArray(valuesSelected, $(this).index(), $select);
               $newSelect.trigger('focus');
             } else {
-              options.find('li.active').removeClass('active');
-              _this.addClass('active');
-              $newSelect.val(_this.text());
-
-              activateOption(options, _this, 'active');
-              $select.find('option').eq(i).prop('selected', true);
+              options.find('li').removeClass('active');
+              $(this).toggleClass('active');
+              $newSelect.val($(this).text());
             }
 
+            activateOption(options, $(this));
+            $select.find('option').eq(i).prop('selected', selected);
             // Trigger onchange() event
             $select.trigger('change');
             if (typeof callback !== 'undefined') callback();
           }
-
-          e.stopPropagation();
-        });
-      });
-
-      options.find('li.optgroup:not(.disabled)').has(':checkbox').each(function() {
-        var _this = $(this);
-
-        _this.on('click', function(e) {
-          var status = _this.find(':checkbox').is(':checked') ? true : false;
-
-          if (!_this.hasClass('disabled')) {
-            var children;
-
-            if (status) {
-              children = _this.nextUntil(options.find('li.optgroup'), 'li.active:not(.disabled)')
-            } else {
-              children = _this.nextUntil(options.find('li.optgroup'), 'li:not(.active, .disabled)')
-            }
-
-            children.each(function() {
-              var _this = $(this),
-                  indexes = returnIndexes(_this);
-
-              toggleIndexFromArray(indexes.element, _this.index(), indexes.optgroup);
-              options.scrollTo(_this);
-              $('input[type="checkbox"]', _this[0]).prop('checked', function(i, v) {
-                return !v;
-              });
-            });
-          }
-
-          _this.toggleClass('active');
-          $('input[type="checkbox"]', _this[0]).prop('checked', function(i, v) {
-            return !v;
-          });
-          $newSelect.trigger('focus');
-          $select.trigger('change');
 
           e.stopPropagation();
         });
@@ -3058,19 +2968,16 @@ $(document).ready(function(){
         dropdownIcon.addClass('disabled');
 
       // escape double quotes
-      var sanitizedLabelHtml = label.replace(/"/g, '&quot;').trim();
+      var sanitizedLabelHtml = label.replace(/"/g, '&quot;');
 
-      var $newSelect = $('<input type="text" class="select-dropdown" readonly="readonly" ' + (($select.is(':disabled')) ? 'disabled' : '') + ' data-activates="select-options-' + uniqueID + '" value="' + sanitizedLabelHtml + '" ' + (required ? 'required' : '') + '/>');
+      var $newSelect = $('<input type="text" class="select-dropdown" readonly="true" ' + (($select.is(':disabled')) ? 'disabled' : '') + ' data-activates="select-options-' + uniqueID +'" value="'+ sanitizedLabelHtml +'"/>');
       $select.before($newSelect);
       $newSelect.before(dropdownIcon);
 
       $newSelect.after(options);
       // Check if section element is disabled
       if (!$select.is(':disabled')) {
-        $newSelect.dropdown({
-          'hover': false,
-          'closeOnClick': false
-        });
+        $newSelect.dropdown({'hover': false, 'closeOnClick': false});
       }
 
       // Copy tabindex
@@ -3080,171 +2987,82 @@ $(document).ready(function(){
 
       $select.addClass('initialized');
 
-      // Select change event - Update the select's values on the fly by passing new values from an array
-      $select.on('update', function() {
-        var selectedOptions = $select.find("option:selected:not(:disabled)").map(function() {
-          return $(this).parent().is(':disabled') ? null : $(this);
-        });
-
-        if (selectedOptions.length) {
-          if (multiple) {
-            resetOptions();
-
-            selectedOptions.each(function() {
-              var _this = $(this),
-                  indexOption = _this.index();
-
-              if (optgroups) {
-                var indexes = returnIndexes(_this);
-
-                toggleIndexFromArray(indexOption, indexes.element, indexes.optgroup);
-                options.find("li").eq(indexes.element).find(":checkbox").prop("checked", true);
-                toggleActivationOptgroupParent(_this);
-              } else {
-                toggleIndexFromArray(indexOption);
-                options.find('li').eq(indexOption).find(':checkbox').prop('checked', true);
-              }
-            });
-          } else {
-            var index = $select.find('option:selected:not(:disabled)').index(),
-                newOption = options.find('li').eq(index);
-
-            options.find('li.active').removeClass('active');
-            newOption.addClass('active');
-            $newSelect.val(newOption.text());
-
-            activateOption(options, newOption, 'active');
-          }
-        } else {
-          if (multiple && optgroups) {
-            resetOptions();
-            setValueToInput(optgroupValuesSelected);
-          }
-        }
-
-        $select.trigger('change');
-      });
-
-      // Input events
       $newSelect.on({
-        'focus': function() {
+        'focus': function (){
           if ($('ul.select-dropdown').not(options[0]).is(':visible')) {
             $('input.select-dropdown').trigger('close');
           }
-
           if (!options.is(':visible')) {
             $(this).trigger('open', ['focus']);
-
-            if (!multiple) {
-              var selectedOption = options.find('li[data-value="' + $select.find('option:not(:disabled):selected').val() + '"]')[0];
-              activateOption(options, selectedOption, 'active');
-            }
+            var label = $(this).val();
+            var selectedOption = options.find('li').filter(function() {
+              return $(this).text().toLowerCase() === label.toLowerCase();
+            })[0];
+            activateOption(options, selectedOption);
           }
-
-          $newSelect.prop('disabled', true);
         },
-        'click': function(e) {
+        'click': function (e){
           e.stopPropagation();
-        },
-        'blur': function() {
-          if (!multiple) {
-            $(this).trigger('close');
-            options.find('li.active:not(.disabled)').removeClass('active');
-          }
         }
+      });
+
+      $newSelect.on('blur', function() {
+        if (!multiple) {
+          $(this).trigger('close');
+        }
+        options.find('li.selected').removeClass('selected');
       });
 
       options.hover(function() {
         optionsHover = true;
-      }, function() {
+      }, function () {
         optionsHover = false;
       });
 
       $(window).on({
-        'click': function() {
+        'click': function () {
           multiple && (optionsHover || $newSelect.trigger('close'));
-
-          if ($newSelect.is(':disabled')) {
-            $newSelect.prop('disabled', false);
-          }
-        },
-        'keydown': function(e) {
-          if ($newSelect.is(':disabled')) {
-            onKeyDown(e);
-          }
         }
       });
 
-      // Add initial multiple selections
+      // Add initial multiple selections.
       if (multiple) {
-        var selectedOptions = $select.find("option:selected:not(:disabled)").map(function() {
-          return $(this).parent().is(':disabled') ? null : $(this);
-        });
+        $select.find("option:selected:not(:disabled)").each(function () {
+          var index = $(this).index();
 
-        selectedOptions.each(function() {
-          var _this = $(this),
-              indexOption = _this.index();
-
-          if (optgroups) {
-            var indexes = returnIndexes(_this);
-
-            toggleIndexFromArray(indexOption, indexes.element, indexes.optgroup);
-            options.find("li").eq(indexes.element).find(":checkbox").prop("checked", true);
-            toggleActivationOptgroupParent(_this);
-          } else {
-            toggleIndexFromArray(indexOption);
-            options.find("li").eq(indexOption).find(":checkbox").prop("checked", true);
-          }
-
-          options.scrollTo(_this);
+          toggleEntryFromArray(valuesSelected, index, $select);
+          options.find("li").eq(index).find(":checkbox").prop("checked", true);
         });
       }
 
-      // Make option as active or selected and scroll to its position
-      var activateOption = function(collection, newOption, _class) {
+      // Make option as selected and scroll to selected position
+      activateOption = function(collection, newOption) {
         if (newOption) {
-          collection.find('li.' + _class).removeClass(_class);
-
+          collection.find('li.selected').removeClass('selected');
           var option = $(newOption);
-          option.addClass(_class);
+          option.addClass('selected');
           options.scrollTo(option);
         }
-      };
-
-      // Resets the dropdown with no options activated
-      var resetOptions = function() {
-        if (multiple && optgroups) {
-          optgroupValuesSelected.length = 0;
-
-          for (var i = 0, count = optionsValuesSelected.length; i < count; i++) {
-            optionsValuesSelected[i].length = 0;
-          }
-        } else {
-          optionsValuesSelected.length = 0;
-        }
-
-        options.find('li.active:not(.disabled)').removeClass('active');
-        options.find(':checkbox').prop('checked', false);
       };
 
       // Allow user to search by typing
       // this array is cleared after 1 second
       var filterQuery = [],
-          onKeyDown = function(e) {
+          onKeyDown = function(e){
             // TAB - switch to another input
-            if (e.which == 9) {
+            if(e.which == 9){
               $newSelect.trigger('close');
               return;
             }
 
             // ARROW DOWN WHEN SELECT IS CLOSED - open select options
-            if (e.which == 40 && !options.is(':visible')) {
+            if(e.which == 40 && !options.is(':visible')){
               $newSelect.trigger('open');
               return;
             }
 
             // ENTER WHEN SELECT IS CLOSED - submit form
-            if (e.which == 13 && !options.is(':visible')) {
+            if(e.which == 13 && !options.is(':visible')){
               return;
             }
 
@@ -3252,8 +3070,7 @@ $(document).ready(function(){
 
             // CASE WHEN USER TYPE LETTERS
             var letter = String.fromCharCode(e.which).toLowerCase(),
-                nonLetters = [9, 13, 27, 38, 40];
-
+                nonLetters = [9,13,27,38,40];
             if (letter && (nonLetters.indexOf(e.which) === -1)) {
               filterQuery.push(letter);
 
@@ -3263,15 +3080,14 @@ $(document).ready(function(){
                   })[0];
 
               if (newOption) {
-                activateOption(options, newOption, 'selected');
+                activateOption(options, newOption);
               }
             }
 
             // ENTER - select option and close when select options are opened
             if (e.which == 13) {
               var activeOption = options.find('li.selected:not(.disabled)')[0];
-
-              if (activeOption) {
+              if(activeOption){
                 $(activeOption).trigger('click');
                 if (!multiple) {
                   $newSelect.trigger('close');
@@ -3282,198 +3098,376 @@ $(document).ready(function(){
             // ARROW DOWN - move to next not disabled option
             if (e.which == 40) {
               if (options.find('li.selected').length) {
-                newOption = options.find('li.selected').next('li');
+                newOption = options.find('li.selected').next('li:not(.disabled)')[0];
               } else {
-                newOption = options.find('li:not(.disabled)');
+                newOption = options.find('li:not(.disabled)')[0];
               }
-
-              newOption = newOption[0];
-
-              if (newOption) {
-                activateOption(options, newOption, 'selected');
-              }
+              activateOption(options, newOption);
             }
 
             // ESC - close options
             if (e.which == 27) {
               $newSelect.trigger('close');
-              $newSelect.prop('disabled', false);
             }
 
             // ARROW UP - move to previous not disabled option
             if (e.which == 38) {
-              newOption = options.find('li.selected').prev('li')[0];
-
-              if (newOption) {
-                activateOption(options, newOption, 'selected');
-              }
+              newOption = options.find('li.selected').prev('li:not(.disabled)')[0];
+              if(newOption)
+                activateOption(options, newOption);
             }
 
-            // Automatically clean filter query so user can search again by starting letters
-            setTimeout(function() {
-              filterQuery = [];
-            }, 1000);
+            // Automaticaly clean filter query so user can search again by starting letters
+            setTimeout(function(){ filterQuery = []; }, 1000);
           };
 
       $newSelect.on('keydown', onKeyDown);
-
-      /* Functions */
-
-      // Updates from optionsValuesSelected to match active dropdown items to the selected select options
-      function toggleIndexFromArray(indexOption, indexLi, indexOptgroup) {
-        var index, notAdded;
-
-        if (multiple && optgroups) {
-          var value = $select.find('optgroup').eq(indexOptgroup).find('option').eq(indexOption).text();
-
-          index = optionsValuesSelected[indexOptgroup].indexOf(indexOption);
-          notAdded = index === -1;
-
-          if (notAdded) {
-            optionsValuesSelected[indexOptgroup].push(indexOption);
-            optgroupValuesSelected.push(value);
-          } else {
-            var indexInArray = optgroupValuesSelected.indexOf(value);
-
-            optionsValuesSelected[indexOptgroup].splice(index, 1);
-            optgroupValuesSelected.splice(indexInArray, 1);
-          }
-
-          options.find('li').eq(indexLi).toggleClass('active');
-          $select.find('optgroup').eq(indexOptgroup).find('option').eq(indexOption).prop('selected', notAdded);
-          setValueToInput(optgroupValuesSelected);
-        } else {
-          index = optionsValuesSelected.indexOf(indexOption);
-          notAdded = index === -1;
-
-          if (notAdded) {
-            optionsValuesSelected.push(indexOption);
-          } else {
-            optionsValuesSelected.splice(index, 1);
-          }
-
-          options.find('li').eq(indexOption).toggleClass('active');
-          $select.find('option').eq(indexOption).prop('selected', notAdded);
-          generatesValuesArray();
-        }
-      }
-
-      // Returns indexes used for toggleIndexFromArray
-      function returnIndexes(_this) {
-        var indexes = {},
-            text = _this.val() || _this.data('value'),
-            selectedElement;
-
-        if (_this.is('li')) {
-          selectedElement = $select.find('option:not(:disabled)[value="' + text + '"]');
-        } else {
-          selectedElement = options.find('li:not(.disabled)[data-value="' + text + '"]');
-        }
-
-        var indexElement = selectedElement.index(),
-            disabledPrevOptions = $select.find('> option:disabled'),
-            indexOptgroup;
-
-        if (_this.is('li')) {
-          indexOptgroup = selectedElement.parent().index();
-        } else {
-          indexOptgroup = _this.parent().index();
-        }
-
-        for (var i = 0, count = disabledPrevOptions.length; i < count; i++) {
-          indexOptgroup--;
-        }
-
-        indexes.element = indexElement;
-        indexes.optgroup = indexOptgroup;
-
-        return indexes;
-      }
-
-      // Creates an array with the values to display
-      function generatesValuesArray() {
-        var arrayValues = [];
-
-        for (var i = 0, count = optionsValuesSelected.length; i < count; i++) {
-          var text = $select.find('option').eq(optionsValuesSelected[i]).text().trim();
-
-          arrayValues.push(text);
-        }
-
-        setValueToInput(arrayValues);
-      }
-
-      // Updates the value in the dropdown input (Option 1, Option 2, ...)
-      function setValueToInput(array) {
-        sortArrayValues(array);
-
-        var value = array.join(', ');
-
-        if (!value) {
-          value = $select.find('option:disabled').eq(0).text() || "";
-        }
-
-        $newSelect.val(value);
-      }
-
-      // Toggle activation of the optgroup's checkbox parent
-      function toggleActivationOptgroupParent(child) {
-        var liTagName = child[0].tagName === "LI",
-            checkForActiveClass = [],
-            children, prevOptgroup, convertElement;
-
-        if (liTagName) {
-          children = child.prevUntil('li.optgroup', 'li:not(.disabled)').add(child.nextUntil('li.optgroup', 'li:not(.disabled)')).add(child);
-          prevOptgroup = child.prevAll('li.optgroup').eq(0);
-        } else {
-          children = child.prevUntil('optgroup', 'option:not(:disabled)').add(child.nextUntil('optgroup', 'option:not(:disabled)')).add(child);
-          prevOptgroup = child.parent();
-        }
-
-        // For each li in optgroup, check the active class and fill the array
-        for (var i = 0, count = children.length; i < count; i++) {
-          var element = $(children[i]);
-
-          if (liTagName) {
-            if (element.hasClass('active')) {
-              checkForActiveClass.push(true);
-            } else {
-              checkForActiveClass.push(false);
-            }
-          } else {
-            convertElement = options.find('li:not(:disabled)[data-value="' + element.val() + '"]');
-
-            i === 0 ? prevOptgroup = convertElement.prevAll('li.optgroup').eq(0) : '';
-
-            if (element.is(':selected') || convertElement.hasClass('active')) {
-              checkForActiveClass.push(true);
-            } else {
-              checkForActiveClass.push(false);
-            }
-          }
-        }
-
-        var oneChildIsNotSelected = checkForActiveClass.indexOf(false) > -1;
-
-        if (oneChildIsNotSelected) {
-          prevOptgroup.find(':checkbox').prop('checked', false);
-          prevOptgroup.removeClass('active');
-        } else {
-          prevOptgroup.find(':checkbox').prop('checked', true);
-          prevOptgroup.addClass('active');
-        }
-      }
-
-      // Sorts the values from the array in alphabetical order
-      function sortArrayValues(array) {
-        array.sort(function(a, b) {
-          var x = a.toLowerCase(),
-              y = b.toLowerCase();
-
-          return x < y ? -1 : x > y ? 1 : 0;
-        });
-      }
     });
+
+    function toggleEntryFromArray(entriesArray, entryIndex, select) {
+      var index = entriesArray.indexOf(entryIndex),
+          notAdded = index === -1;
+
+      if (notAdded) {
+        entriesArray.push(entryIndex);
+      } else {
+        entriesArray.splice(index, 1);
+      }
+
+      select.siblings('ul.dropdown-content').find('li').eq(entryIndex).toggleClass('active');
+
+      // use notAdded instead of true (to detect if the option is selected or not)
+      select.find('option').eq(entryIndex).prop('selected', notAdded);
+      setValueToInput(entriesArray, select);
+
+      return notAdded;
+    }
+
+    function setValueToInput(entriesArray, select) {
+      var value = '';
+
+      for (var i = 0, count = entriesArray.length; i < count; i++) {
+        var text = select.find('option').eq(entriesArray[i]).text();
+
+        i === 0 ? value += text : value += ', ' + text;
+      }
+
+      if (value === '') {
+        value = select.find('option:disabled').eq(0).text();
+      }
+
+      select.siblings('input.select-dropdown').val(value);
+    }
+  };
+
+}( jQuery ));
+;(function ($) {
+
+  var methods = {
+
+    init : function(options) {
+      var defaults = {
+        indicators: true,
+        height: 400,
+        transition: 500,
+        interval: 6000
+      };
+      options = $.extend(defaults, options);
+
+      return this.each(function() {
+
+        // For each slider, we want to keep track of
+        // which slide is active and its associated content
+        var $this = $(this);
+        var $slider = $this.find('ul.slides').first();
+        var $slides = $slider.find('li');
+        var $active_index = $slider.find('.active').index();
+        var $active, $indicators, $interval;
+        if ($active_index != -1) { $active = $slides.eq($active_index); }
+
+        // Transitions the caption depending on alignment
+        function captionTransition(caption, duration) {
+          if (caption.hasClass("center-align")) {
+            caption.velocity({opacity: 0, translateY: -100}, {duration: duration, queue: false});
+          }
+          else if (caption.hasClass("right-align")) {
+            caption.velocity({opacity: 0, translateX: 100}, {duration: duration, queue: false});
+          }
+          else if (caption.hasClass("left-align")) {
+            caption.velocity({opacity: 0, translateX: -100}, {duration: duration, queue: false});
+          }
+        }
+
+        // This function will transition the slide to any index of the next slide
+        function moveToSlide(index) {
+          // Wrap around indices.
+          if (index >= $slides.length) index = 0;
+          else if (index < 0) index = $slides.length -1;
+
+          $active_index = $slider.find('.active').index();
+
+          // Only do if index changes
+          if ($active_index != index) {
+            $active = $slides.eq($active_index);
+            $caption = $active.find('.caption');
+
+            $active.removeClass('active');
+            $active.velocity({opacity: 0}, {duration: options.transition, queue: false, easing: 'easeOutQuad',
+                              complete: function() {
+                                $slides.not('.active').velocity({opacity: 0, translateX: 0, translateY: 0}, {duration: 0, queue: false});
+                              } });
+            captionTransition($caption, options.transition);
+
+
+            // Update indicators
+            if (options.indicators) {
+              $indicators.eq($active_index).removeClass('active');
+            }
+
+            $slides.eq(index).velocity({opacity: 1}, {duration: options.transition, queue: false, easing: 'easeOutQuad'});
+            $slides.eq(index).find('.caption').velocity({opacity: 1, translateX: 0, translateY: 0}, {duration: options.transition, delay: options.transition, queue: false, easing: 'easeOutQuad'});
+            $slides.eq(index).addClass('active');
+
+
+            // Update indicators
+            if (options.indicators) {
+              $indicators.eq(index).addClass('active');
+            }
+          }
+        }
+
+        // Set height of slider
+        // If fullscreen, do nothing
+        if (!$this.hasClass('fullscreen')) {
+          if (options.indicators) {
+            // Add height if indicators are present
+            $this.height(options.height + 40);
+          }
+          else {
+            $this.height(options.height);
+          }
+          $slider.height(options.height);
+        }
+
+
+        // Set initial positions of captions
+        $slides.find('.caption').each(function () {
+          captionTransition($(this), 0);
+        });
+
+        // Move img src into background-image
+        $slides.find('img').each(function () {
+          var placeholderBase64 = 'data:image/gif;base64,R0lGODlhAQABAIABAP///wAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+          if ($(this).attr('src') !== placeholderBase64) {
+            $(this).css('background-image', 'url(' + $(this).attr('src') + ')' );
+            $(this).attr('src', placeholderBase64);
+          }
+        });
+
+        // dynamically add indicators
+        if (options.indicators) {
+          $indicators = $('<ul class="indicators"></ul>');
+          $slides.each(function( index ) {
+            var $indicator = $('<li class="indicator-item"></li>');
+
+            // Handle clicks on indicators
+            $indicator.click(function () {
+              var $parent = $slider.parent();
+              var curr_index = $parent.find($(this)).index();
+              moveToSlide(curr_index);
+
+              // reset interval
+              clearInterval($interval);
+              $interval = setInterval(
+                function(){
+                  $active_index = $slider.find('.active').index();
+                  if ($slides.length == $active_index + 1) $active_index = 0; // loop to start
+                  else $active_index += 1;
+
+                  moveToSlide($active_index);
+
+                }, options.transition + options.interval
+              );
+            });
+            $indicators.append($indicator);
+          });
+          $this.append($indicators);
+          $indicators = $this.find('ul.indicators').find('li.indicator-item');
+        }
+
+        if ($active) {
+          $active.show();
+        }
+        else {
+          $slides.first().addClass('active').velocity({opacity: 1}, {duration: options.transition, queue: false, easing: 'easeOutQuad'});
+
+          $active_index = 0;
+          $active = $slides.eq($active_index);
+
+          // Update indicators
+          if (options.indicators) {
+            $indicators.eq($active_index).addClass('active');
+          }
+        }
+
+        // Adjust height to current slide
+        $active.find('img').each(function() {
+          $active.find('.caption').velocity({opacity: 1, translateX: 0, translateY: 0}, {duration: options.transition, queue: false, easing: 'easeOutQuad'});
+        });
+
+        // auto scroll
+        $interval = setInterval(
+          function(){
+            $active_index = $slider.find('.active').index();
+            moveToSlide($active_index + 1);
+
+          }, options.transition + options.interval
+        );
+
+
+        // HammerJS, Swipe navigation
+
+        // Touch Event
+        var panning = false;
+        var swipeLeft = false;
+        var swipeRight = false;
+
+        $this.hammer({
+            prevent_default: false
+        }).bind('pan', function(e) {
+          if (e.gesture.pointerType === "touch") {
+
+            // reset interval
+            clearInterval($interval);
+
+            var direction = e.gesture.direction;
+            var x = e.gesture.deltaX;
+            var velocityX = e.gesture.velocityX;
+
+            $curr_slide = $slider.find('.active');
+            $curr_slide.velocity({ translateX: x
+                }, {duration: 50, queue: false, easing: 'easeOutQuad'});
+
+            // Swipe Left
+            if (direction === 4 && (x > ($this.innerWidth() / 2) || velocityX < -0.65)) {
+              swipeRight = true;
+            }
+            // Swipe Right
+            else if (direction === 2 && (x < (-1 * $this.innerWidth() / 2) || velocityX > 0.65)) {
+              swipeLeft = true;
+            }
+
+            // Make Slide Behind active slide visible
+            var next_slide;
+            if (swipeLeft) {
+              next_slide = $curr_slide.next();
+              if (next_slide.length === 0) {
+                next_slide = $slides.first();
+              }
+              next_slide.velocity({ opacity: 1
+                  }, {duration: 300, queue: false, easing: 'easeOutQuad'});
+            }
+            if (swipeRight) {
+              next_slide = $curr_slide.prev();
+              if (next_slide.length === 0) {
+                next_slide = $slides.last();
+              }
+              next_slide.velocity({ opacity: 1
+                  }, {duration: 300, queue: false, easing: 'easeOutQuad'});
+            }
+
+
+          }
+
+        }).bind('panend', function(e) {
+          if (e.gesture.pointerType === "touch") {
+
+            $curr_slide = $slider.find('.active');
+            panning = false;
+            curr_index = $slider.find('.active').index();
+
+            if (!swipeRight && !swipeLeft) {
+              // Return to original spot
+              $curr_slide.velocity({ translateX: 0
+                  }, {duration: 300, queue: false, easing: 'easeOutQuad'});
+            }
+            else if (swipeLeft) {
+              moveToSlide(curr_index + 1);
+              $curr_slide.velocity({translateX: -1 * $this.innerWidth() }, {duration: 300, queue: false, easing: 'easeOutQuad',
+                                    complete: function() {
+                                      $curr_slide.velocity({opacity: 0, translateX: 0}, {duration: 0, queue: false});
+                                    } });
+            }
+            else if (swipeRight) {
+              moveToSlide(curr_index - 1);
+              $curr_slide.velocity({translateX: $this.innerWidth() }, {duration: 300, queue: false, easing: 'easeOutQuad',
+                                    complete: function() {
+                                      $curr_slide.velocity({opacity: 0, translateX: 0}, {duration: 0, queue: false});
+                                    } });
+            }
+            swipeLeft = false;
+            swipeRight = false;
+
+            // Restart interval
+            clearInterval($interval);
+            $interval = setInterval(
+              function(){
+                $active_index = $slider.find('.active').index();
+                if ($slides.length == $active_index + 1) $active_index = 0; // loop to start
+                else $active_index += 1;
+
+                moveToSlide($active_index);
+
+              }, options.transition + options.interval
+            );
+          }
+        });
+
+        $this.on('sliderPause', function() {
+          clearInterval($interval);
+        });
+
+        $this.on('sliderStart', function() {
+          clearInterval($interval);
+          $interval = setInterval(
+            function(){
+              $active_index = $slider.find('.active').index();
+              if ($slides.length == $active_index + 1) $active_index = 0; // loop to start
+              else $active_index += 1;
+
+              moveToSlide($active_index);
+
+            }, options.transition + options.interval
+          );
+        });
+
+        $this.on('sliderNext', function() {
+          $active_index = $slider.find('.active').index();
+          moveToSlide($active_index + 1);
+        });
+
+        $this.on('sliderPrev', function() {
+          $active_index = $slider.find('.active').index();
+          moveToSlide($active_index - 1);
+        });
+
+      });
+
+
+
+    },
+    pause : function() {
+      $(this).trigger('sliderPause');
+    },
+    start : function() {
+      $(this).trigger('sliderStart');
+    },
+    next : function() {
+      $(this).trigger('sliderNext');
+    },
+    prev : function() {
+      $(this).trigger('sliderPrev');
+    }
   };
 
 

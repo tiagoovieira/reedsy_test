@@ -1,6 +1,6 @@
 angular.module('reedsy').controller('BooksIndexController', [ 
-  '$scope', 'book', '$location',
-  function($scope, book, $location){
+  '$scope', 'book', '$location', '$filter',
+  function($scope, book, $location, $filter){
 
     getBooks();
     $scope.currentPage = 1;
@@ -38,6 +38,28 @@ angular.module('reedsy').controller('BooksIndexController', [
     $scope.showBook = function(){
       $location.path('/' + this.book.id);
     }
+    
+
+    $scope.selection = []
+
+    $scope.toggleSelection = function toggleSelection(genre) {
+
+      $scope.books = book.getValues();
+      var idx = $scope.selection.indexOf(genre);
+
+      // is currently selected
+      if (idx > -1) {
+        $scope.selection.splice(idx, 1);
+      }
+
+      // is newly selected
+      else {
+        $scope.selection.push(genre);
+      }
+
+      $scope.books = $filter('genreCategory')($scope.books, $scope.selection);
+      console.log($scope.books);
+    };  
 
   }
 ])

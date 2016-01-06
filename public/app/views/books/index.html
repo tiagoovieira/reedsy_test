@@ -1,7 +1,7 @@
 <div options></div>
 
 <div class="mt-20">
-  <div dir-paginate="book in books | search:search | genreCategory:genreCategories | itemsPerPage: 24" current-page="currentPage" class="book-card book-card-small">
+  <div dir-paginate="book in books | search:search | itemsPerPage: 24" current-page="currentPage" class="book-card book-card-small">
     <div class="card" ng-click="showBook()">
       <div class="card-image">
         <img src="{{book.cover}}">

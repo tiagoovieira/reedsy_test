@@ -9,20 +9,12 @@
 </nav>
 
 <div class="input-field col s12">
-  <select multiple ng-model="genreCategories" >
-    <option value="" disabled selected>Choose the Category & Genre</option>
-    <optgroup ng-repeat="category in genreCategories" label="{{category.category}}"> 
-      <option ng-repeat="genre in category.genres" value="{{genre}}">{{genre}}</option>
-    </optgroup>
-  </select>
+  <div ng-repeat="category in genreCategories"> <p><b>{{category. category}}</b></p>
+    <div ng-repeat="(type, genre) in category.genres" style="display: inline-block;width: 180px;">
+      <span >
+        <input type="checkbox" id="{{genre}}" value="{{genre}}" ng-click="toggleSelection(genre)"/>
+        <label for="{{genre}}">{{genre}}</label>
+      </span>
+    </div>
+  </div>
 </div>
-
-
-<script type="text/javascript">
-  
-  function materializeSelectBug(){
-    $('select').material_select();
-  }
-  setTimeout(materializeSelectBug, 500);
-
-</script>
