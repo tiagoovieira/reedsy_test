@@ -3,6 +3,7 @@ angular.module('reedsy').filter('genreCategory', function() {
     var filtered = [];
 
     angular.forEach(items, function(item) {
+      // console.log(input);
       filtered.push(item);
     });
     return filtered;

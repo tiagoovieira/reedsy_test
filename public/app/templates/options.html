@@ -9,21 +9,20 @@
 </nav>
 
 <div class="input-field col s12">
-  <select multiple>
-    <option value="" disabled selected>Choose your option</option>
+  <select multiple ng-model="genreCategories" >
+    <option value="" disabled selected>Choose the Category & Genre</option>
     <optgroup ng-repeat="category in genreCategories" label="{{category.category}}"> 
       <option ng-repeat="genre in category.genres" value="{{genre}}">{{genre}}</option>
     </optgroup>
   </select>
 </div>
 
+
 <script type="text/javascript">
-  $(document).ready(function() {
-    
+  
+  function materializeSelectBug(){
     $('select').material_select();
-    $('input.select-dropdown').click(function(e){
-      $('select').material_select();
-    });
-  });
+  }
+  setTimeout(materializeSelectBug, 500);
 
 </script>

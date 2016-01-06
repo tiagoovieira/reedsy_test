@@ -1,26 +1,45 @@
-<div options></div>
-<div class="card-panel" style="position: relative">
+<div class="card-panel">
   <img src="{{book.cover}}">
   <div class="book-info">
     <h3>{{book.name}}</h3>
-    <img src="{{ book.author.avatar }}">{{ book.author.name }} <br>
+    <img src="{{ book.author.avatar }}">
+    <p><b>Author</b>: {{ book.author.name }}</p>
+    <p><b>Likes</b>: {{ book.likes }} </p>
+    <p><b>Published</b>: <span am-time-ago="book.published"></span></p>      
+  </div>
+  <div class="card-content mt-20">
+    <h4>Description</h4>
+    <div ng-repeat="intro in book.introduction">
+      <p>{{intro.content}}</p>
+    </div>
+  </div>
+</div>
+
+<div class="center-align mt-20">
+  <h3>Similar Books</h3>
+  <div id="recommended-books">
+    <div ng-repeat="book in recommendedBooks"  class="book-card book-card-recommended" ng-class="{'mr-10': $last}">
+      <div class="card" ng-click="showBook()">
+        <div class="card-image">
+          <img src="{{book.cover}}">
+          <span class="card-title title-highlight">{{ book.name }}</span>
+        </div>
+        <div class="card-content">
+          <b>Author:</b> <br> 
+          {{ book.author.name }} <br>
           Likes: {{ book.likes }} <br>
           <span am-time-ago="book.published"></span>
-
-    <div ng-repeat="intro in book.introduction">
-      {{intro.content}}
+          
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 
 <style type="text/css">
-  .card-panel > img {
-    display: inline-block;
-  }
-
-  .book-info {
-    position: absolute;
-    display: inline-block;
-  }
+/* ng-repeat doesn't seem to allow targeting the last child element */
+.mr-10 {
+  margin-right: 10px;
+};
 </style>
