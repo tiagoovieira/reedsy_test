@@ -14,7 +14,12 @@
  *= require_self
  */
 
+ ul.pagination {
+  display: inline-block;
+ }
+
 .mt-20 {margin-top: 20px;}
+.ml-30 {margin-left: 30px;}
 
 .book-card-small {
   width: 23%;

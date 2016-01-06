@@ -4,6 +4,7 @@ angular.module('reedsy').controller('BooksIndexController', [
 
     getBooks();
     $scope.currentPage = 1;
+    $scope.perPage = 24;
     $scope.genreCategories = {};
  
     // Calls book service API GET request, after it gets a reply, populates $scope.books
@@ -39,26 +40,25 @@ angular.module('reedsy').controller('BooksIndexController', [
       $location.path('/' + this.book.id);
     }
     
+    $scope.setPerPage = function(perPage){
+      $scope.perPage = perPage
+    }
 
+    // Materialize select is unstable, alternatively using checkboxes
     $scope.selection = []
 
     $scope.toggleSelection = function toggleSelection(genre) {
-
       $scope.books = book.getValues();
       var idx = $scope.selection.indexOf(genre);
-
       // is currently selected
       if (idx > -1) {
         $scope.selection.splice(idx, 1);
       }
-
       // is newly selected
       else {
         $scope.selection.push(genre);
       }
-
       $scope.books = $filter('genreCategory')($scope.books, $scope.selection);
-      console.log($scope.books);
     };  
 
   }
